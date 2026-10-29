@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Clinical Access Case Study</title>
+<meta name="description" content="Interactive executive case study: Regional Clinical Access & Capacity Transformation (illustrative scenario).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;600;750&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a clinical-board "chart" — summary strip on top, tabbed sections below, one scenario explorer as the interactive centrepiece. */
+:root{
+  --bg:#f3f6f8; --panel:#ffffff; --ink:#132638; --muted:#5d6f80; --line:#dbe3ea;
+  --teal:#15807a; --teal-soft:#e3f2f0; --navy:#123c56; --amber:#b9781b; --amber-soft:#fff4e2;
+  --good:#1f7a4d; --bad:#b53c2e; --grid:#e8edf1; --band:rgba(21,128,122,.12);
+  --display:"Fraunces",Georgia,serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:12px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1820; --panel:#13222d; --ink:#e4edf3; --muted:#93a6b6; --line:#24384a;
+  --teal:#4cc2b8; --teal-soft:#173a3a; --navy:#7fb7da; --amber:#e3a94f; --amber-soft:#33281a;
+  --good:#5cc78d; --bad:#ef7c6c; --grid:#1d2f3d; --band:rgba(76,194,184,.16); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1820; --panel:#13222d; --ink:#e4edf3; --muted:#93a6b6; --line:#24384a;
+  --teal:#4cc2b8; --teal-soft:#173a3a; --navy:#7fb7da; --amber:#e3a94f; --amber-soft:#33281a;
+  --good:#5cc78d; --bad:#ef7c6c; --grid:#1d2f3d; --band:rgba(76,194,184,.16); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 48px}
+.wrap{max-width:1180px;margin-inline:auto;display:grid;gap:24px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font:600 12px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.label{font:600 11.5px/1.2 var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* Header */
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:22px}
+.top h1{font:650 clamp(28px,4.2vw,44px)/1.1 var(--display);letter-spacing:-.02em;margin:10px 0 6px}
+.sub{color:var(--muted)}
+.top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tag{background:var(--amber-soft);color:var(--amber);border-radius:999px;padding:7px 12px;font:750 11.5px/1 var(--body);letter-spacing:.06em}
+.icon-btn{font:600 13px var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer}
+.icon-btn:hover{border-color:var(--teal)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;display:grid;gap:6px;text-align:left;font:inherit;color:inherit;cursor:pointer;transition:border-color .2s,transform .2s}
+.kpi:hover{border-color:var(--teal);transform:translateY(-1px)}
+.kpi .big{font:500 36px/1 var(--display);letter-spacing:-.02em;color:var(--navy)}
+.kpi .note{font-size:12.5px;color:var(--muted)}
+.kpi .go{font-size:12px;color:var(--teal);font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:600 14px var(--body);background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tab .n{font:500 11px/1 var(--mono);border:1px solid currentColor;border-radius:999px;padding:3px 6px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--teal)}
+.page{display:grid;gap:16px}
+.lede{max-width:70ch;color:var(--muted);margin:0}
+
+/* Panels */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;min-width:0;display:grid;gap:10px;align-content:start}
+.panel h3{font:650 13px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.panel p{margin:0;max-width:68ch;color:var(--muted)}
+.panel p strong{color:var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--teal-soft);color:var(--teal);border-radius:999px;padding:6px 11px;font:600 12px/1 var(--body);border:1px solid transparent}
+button.chip{cursor:pointer}
+button.chip[aria-pressed="false"]{background:transparent;border-color:var(--line);color:var(--muted)}
+.fine{font-size:12px;color:var(--muted)}
+
+/* Approach steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.step{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;background:var(--panel);cursor:pointer;text-align:left;font:inherit;color:inherit;display:grid;gap:4px}
+.step[aria-pressed="true"]{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal)}
+.step b{font:500 12px var(--mono);color:var(--teal)}
+.step span{font-weight:650}
+.step-detail{min-height:96px}
+
+/* Risk register */
+.risk{border-top:1px solid var(--line)}
+.risk:first-of-type{border-top:0}
+.risk summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 2px}
+.risk summary::-webkit-details-marker{display:none}
+.risk summary .t{font-weight:650}
+.risk summary .chev{transition:transform .2s;color:var(--muted)}
+.risk[open] summary .chev{transform:rotate(90deg)}
+.risk .body{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;padding:0 2px 16px 30px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--teal)}
+.dot.ctl{background:var(--navy)}
+.pill{font:600 11.5px/1 var(--body);padding:5px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);white-space:nowrap}
+
+/* Scenario explorer */
+.explorer{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px}
+@media (max-width:820px){.explorer{grid-template-columns:1fr}}
+.controls{display:grid;gap:18px;align-content:start}
+.ctrl{display:grid;gap:6px}
+.ctrl-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ctrl output{font:500 14px var(--mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--teal)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.stats{grid-template-columns:1fr}}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:4px}
+.stat .v{font:500 26px/1 var(--display);letter-spacing:-.01em}
+.v.good{color:var(--good)} .v.bad{color:var(--bad)}
+.chart-box{position:relative;min-height:280px}
+.chart-box svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.12);white-space:nowrap;transform:translate(-50%,-110%)}
+.tip[hidden]{display:none}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.reset{justify-self:start}
+
+/* Bars */
+.bars{display:grid;gap:14px}
+.bar-row{display:grid;gap:6px}
+.bar-head{display:flex;justify-content:space-between;gap:8px}
+.bar-head b{font:500 15px var(--mono)}
+.track{height:12px;background:var(--grid);border-radius:6px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--teal);border-radius:6px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.fill.alt{background:var(--navy)}
+
+.foot{padding:13px 16px;border-left:4px solid var(--amber);background:var(--amber-soft);color:var(--ink);font-size:13px;border-radius:0 8px 8px 0}
+.small{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="top">
+  <div>
+    <div class="eyebrow">Executive portfolio · case study</div>
+    <h1>Regional Clinical Access &amp; Capacity Transformation</h1>
+    <div class="sub">Healthcare service transformation · Atlantic Canada context · illustrative scenario</div>
+  </div>
+  <div class="top-actions">
+    <span class="tag">FICTIONAL EXAMPLE — VERIFY BEFORE USE</span>
+    <button class="icon-btn" id="theme" type="button" aria-label="Toggle colour theme">Light / dark</button>
+  </div>
+</header>
+
+<section class="kpis" aria-label="Headline figures">
+  <button class="kpi" type="button" data-goto="returns">
+    <span class="label">Programme investment</span>
+    <span class="big num" data-kpi="investment">—</span>
+    <span class="note">Illustrative estimate · confirm currency / basis</span>
+    <span class="go">Explore payback →</span>
+  </button>
+  <button class="kpi" type="button" data-goto="returns">
+    <span class="label">Targeted wait-time change</span>
+    <span class="big num" data-kpi="waitChange">—</span>
+    <span class="note">Median wait · illustrative outcome</span>
+    <span class="go">See service outcome →</span>
+  </button>
+  <button class="kpi" type="button" data-goto="returns">
+    <span class="label">Annualized cost avoidance</span>
+    <span class="big num" data-kpi="costAvoidance">—</span>
+    <span class="note">Illustrative estimate · finance validation required</span>
+    <span class="go">Stress-test it →</span>
+  </button>
+  <button class="kpi" type="button" data-goto="governance">
+    <span class="label">Delivery scale</span>
+    <span class="big num" data-kpi="duration">—</span>
+    <span class="note" data-kpi="scale">—</span>
+    <span class="go">See governance →</span>
+  </button>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Case study sections">
+  <button class="tab" role="tab" id="tab-challenge" data-page="challenge" aria-selected="true"><span class="n">1</span>Challenge</button>
+  <button class="tab" role="tab" id="tab-approach" data-page="approach" aria-selected="false"><span class="n">2</span>CBAP strategy</button>
+  <button class="tab" role="tab" id="tab-governance" data-page="governance" aria-selected="false"><span class="n">3</span>PMP governance</button>
+  <button class="tab" role="tab" id="tab-returns" data-page="returns" aria-selected="false"><span class="n">4</span>Returns</button>
+</nav>
+
+<!-- 1 · Challenge -->
+<section class="page" id="challenge" role="tabpanel" aria-labelledby="tab-challenge">
+  <p class="lede">Strategic challenge and regional context.</p>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Executive problem</h3>
+      <p>Demand outpaced available service capacity. Fragmented referral pathways and inconsistent visibility made it harder to reduce waits, use capacity effectively and manage fiscal pressure. The programme framed this as a <strong>service performance and sustainability challenge</strong>, not a technology refresh.</p>
+    </div>
+    <div class="panel">
+      <h3>Stakeholder environment</h3>
+      <p>Executive sponsors, clinicians, operations, finance, data and privacy teams, vendors, and patient representatives needed a shared target state across a geographically distributed system.</p>
+      <div class="chips"><span class="chip">Nova Scotia Health*</span><span class="chip">Horizon Health Network*</span><span class="chip">Multi-site delivery</span></div>
+      <p class="fine">*Named for regional context only. Secure permission before naming any organization.</p>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Who needed to align</h3>
+    <p>Select a group to see what it needed from the programme.</p>
+    <div class="chips" id="stake-chips"></div>
+    <p id="stake-detail" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- 2 · Approach -->
+<section class="page" id="approach" role="tabpanel" aria-labelledby="tab-approach" hidden>
+  <p class="lede">CBAP strategy: align, elicit, define. Step through the business analysis sequence.</p>
+  <div class="steps" id="steps"></div>
+  <div class="panel step-detail">
+    <h3 id="step-title">—</h3>
+    <p id="step-body">—</p>
+    <div class="chips" id="step-tech"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Business analysis approach</h3>
+      <p>Connected strategic objectives to measurable service outcomes; used interviews, workshops, process mapping and data review to establish current state, identify root causes and reconcile differing stakeholder needs.</p>
+    </div>
+    <div class="panel">
+      <h3>Definition &amp; decision quality</h3>
+      <p>Mapped capabilities, processes, data and controls to prioritized requirements and acceptance criteria. Separated essential regional needs from local preferences to define a phased, interoperable target state.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Governance -->
+<section class="page" id="governance" role="tabpanel" aria-labelledby="tab-governance" hidden>
+  <p class="lede">PMP execution: governance and risk control. Filter the register and open any item for the response.</p>
+  <div class="panel">
+    <div class="chips" id="risk-filter" role="group" aria-label="Filter register"></div>
+    <div id="risks"></div>
+    <div class="small">Stage gates plus iterative design, test and adoption · 30-month delivery horizon (example only)</div>
+  </div>
+</section>
+
+<!-- 4 · Returns -->
+<section class="page" id="returns" role="tabpanel" aria-labelledby="tab-returns" hidden>
+  <p class="lede">Financial and operational return. Adjust the assumptions to see how sensitive the business case is.</p>
+
+  <div class="panel">
+    <h3>Payback scenario explorer</h3>
+    <div class="explorer">
+      <div class="controls">
+        <div class="ctrl">
+          <div class="ctrl-head"><label class="label" for="inv">Investment</label><output id="inv-out" for="inv">—</output></div>
+          <input id="inv" type="range" min="6" max="20" step="0.5">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label class="label" for="real">Benefit realization</label><output id="real-out" for="real">—</output></div>
+          <input id="real" type="range" min="40" max="140" step="5">
+          <span class="fine">Share of the modeled annual cost avoidance actually achieved.</span>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label class="label" for="ramp">Ramp-up to full benefit</label><output id="ramp-out" for="ramp">—</output></div>
+          <input id="ramp" type="range" min="0" max="3" step="0.5">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label class="label" for="hor">Horizon</label><output id="hor-out" for="hor">—</output></div>
+          <input id="hor" type="range" min="5" max="20" step="1">
+        </div>
+        <button class="icon-btn reset" type="button" id="reset">Reset to case figures</button>
+      </div>
+      <div style="display:grid;gap:14px;min-width:0">
+        <div class="stats">
+          <div class="stat"><span class="label">Payback</span><span class="v num" id="s-payback">—</span></div>
+          <div class="stat"><span class="label">Net at horizon</span><span class="v num" id="s-net">—</span></div>
+          <div class="stat"><span class="label">Return on investment</span><span class="v num" id="s-roi">—</span></div>
+        </div>
+        <div class="chart-box" id="chart"><div class="tip" id="tip" hidden></div></div>
+        <div class="legend"><span><i style="background:var(--teal)"></i>Cumulative net position</span><span><i style="background:var(--band);height:10px"></i>Range at 50%–120% realization</span><span><i style="background:var(--muted)"></i>Break-even</span></div>
+      </div>
+    </div>
+    <p class="fine">Cost avoidance is modeled, not cash savings. Undiscounted and illustrative; attribution and finance approval required.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h3>Service outcome</h3>
+      <p><strong><span id="wait-pct">—</span> reduction</strong> in median waits for targeted services, within 12 months of full deployment (example claim; validate against source data).</p>
+      <div class="bars" id="wait-bars"></div>
+    </div>
+    <div class="panel">
+      <h3>Adoption indicators</h3>
+      <p>Illustrative only.</p>
+      <div class="bars" id="adopt-bars"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Financial outcome</h3>
+    <p><strong><span id="fin-ca">—</span> annualized cost avoidance</strong> modeled across reduced rework, capacity utilization and escalation costs; attribution and finance approval required.</p>
+  </div>
+</section>
+
+<div class="foot"><strong>Use with integrity:</strong> Every named organization, figure, date, metric and event on this dashboard is fictional and illustrative. Replace with your own substantiated project evidence; secure permission before naming organizations; distinguish actual savings from cost avoidance and estimates.</div>
+<div class="small">Executive hiring committee view · PMP: governance, risk, delivery discipline · CBAP: business architecture, elicitation, stakeholder alignment</div>
+</main>
+
+<script>
+/* ---- Case data: edit these values to use your own substantiated figures ---- */
+const CASE = {
+  currency: "£",
+  investment: 12,          // £M
+  waitChange: -22,         // % change in median wait
+  costAvoidance: 1.4,      // £M per year
+  durationMonths: 30,
+  sites: 18,
+  users: 4200,
+  adoption: [
+    { label: "Role-based training completion", value: 91 },
+    { label: "Active use at 90 days", value: 86 },
+    { label: "Fewer incomplete referrals", value: 30 }
+  ],
+  stakeholders: [
+    { name: "Executive sponsors", need: "A clear link from investment to service performance and fiscal sustainability, with escalation thresholds they could act on." },
+    { name: "Clinicians", need: "Referral pathways that reduce rework and give visibility of capacity without adding clinical burden." },
+    { name: "Operations", need: "Consistent capacity visibility across sites and realistic training and backfill plans." },
+    { name: "Finance", need: "Attributable, validated benefits that separate cost avoidance from cash savings." },
+    { name: "Data & privacy", need: "Controlled regional data definitions, reconciliation checks and privacy-by-design controls." },
+    { name: "Vendors", need: "Defined deliverables, acceptance evidence and governance for defects and knowledge transfer." },
+    { name: "Patient representatives", need: "Shorter, more predictable waits and fewer incomplete referrals." }
+  ],
+  steps: [
+    { k: "Align", title: "Align strategy to outcomes", body: "Connected strategic objectives to measurable service outcomes so the programme was judged on waits, capacity use and sustainability rather than system go-live.", tech: ["Business case", "Outcome measures", "Sponsor alignment"] },
+    { k: "Elicit", title: "Elicit current state and root causes", body: "Used interviews, workshops, process mapping and data review to establish current state, identify root causes and reconcile differing stakeholder needs.", tech: ["Interviews", "Workshops", "Process mapping", "Data review"] },
+    { k: "Define", title: "Define and prioritize requirements", body: "Mapped capabilities, processes, data and controls to prioritized requirements and acceptance criteria.", tech: ["Capability map", "Requirements", "Acceptance criteria"] },
+    { k: "Decide", title: "Decide a phased target state", body: "Separated essential regional needs from local preferences to define a phased, interoperable target state.", tech: ["Prioritization", "Target state", "Phasing"] }
+  ],
+  risks: [
+    { cat: "Control", title: "Control environment", response: "Baselined scope, schedule, budget and benefits; decision logs, change control, dependency tracking and executive escalation thresholds.", outcome: "Stage gates + iterative design, test and adoption" },
+    { cat: "Risk", title: "Data definitions varied", response: "Clinical and data owners agreed controlled regional definitions; reconciliation checks added; deployment held until quality criteria passed.", outcome: "Reporting integrity protected" },
+    { cat: "Risk", title: "Limited staff availability", response: "Staggered validation and training, prioritized critical roles and planned operational backfill; readiness retained as deployment criterion.", outcome: "Safe readiness over schedule pressure" },
+    { cat: "Risk", title: "Vendor accountability", response: "Deliverables, acceptance evidence, defect resolution and knowledge transfer managed through defined governance.", outcome: "Clear ownership and assurance" }
+  ]
+};
+/* -------------------------------------------------------------------------- */
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const money = (v, d = 1) => (v < 0 ? "−" : "") + CASE.currency + Math.abs(v).toFixed(d).replace(/\.0$/, "") + "M";
+const el = (tag, props = {}, kids = []) => {
+  const { dataset, ...rest } = props;
+  const n = Object.assign(document.createElement(tag), rest);
+  if (dataset) Object.assign(n.dataset, dataset);
+  n.append(...kids); return n;
+};
+
+/* Theme toggle */
+(() => {
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("cs-theme"); if (t) root.dataset.theme = t; } catch (e) {}
+  $("#theme").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("cs-theme", root.dataset.theme); } catch (e) {}
+    drawChart();
+  });
+})();
+
+/* KPIs */
+$('[data-kpi="investment"]').textContent = money(CASE.investment, 0);
+$('[data-kpi="waitChange"]').textContent = (CASE.waitChange < 0 ? "−" : "+") + Math.abs(CASE.waitChange) + "%";
+$('[data-kpi="costAvoidance"]').textContent = money(CASE.costAvoidance);
+$('[data-kpi="duration"]').textContent = CASE.durationMonths + " mo";
+$('[data-kpi="scale"]').textContent = `${CASE.sites} sites · ${CASE.users.toLocaleString("en")} users (example only)`;
+
+/* Tabs with hash links */
+const pages = $$(".page"), tabs = $$(".tab");
+function show(id, focus) {
+  if (!pages.some(p => p.id === id)) id = "challenge";
+  pages.forEach(p => p.hidden = p.id !== id);
+  tabs.forEach(t => t.setAttribute("aria-selected", String(t.dataset.page === id)));
+  if (history.replaceState) history.replaceState(null, "", "#" + id);
+  if (id === "returns") { requestAnimationFrame(() => { drawChart(); animateBars(); }); }
+  if (focus) $("#tab-" + id).scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+tabs.forEach(t => t.addEventListener("click", () => show(t.dataset.page)));
+$(".tabs").addEventListener("keydown", e => {
+  const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+  const j = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i - 1 + tabs.length) % tabs.length : -1;
+  if (j >= 0) { tabs[j].focus(); show(tabs[j].dataset.page); }
+});
+$$("[data-goto]").forEach(b => b.addEventListener("click", () => show(b.dataset.goto, true)));
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+
+/* Stakeholders */
+(() => {
+  const box = $("#stake-chips"), out = $("#stake-detail");
+  const pick = i => {
+    $$("button", box).forEach((b, j) => b.setAttribute("aria-pressed", String(i === j)));
+    out.textContent = CASE.stakeholders[i].need;
+  };
+  CASE.stakeholders.forEach((s, i) => box.append(el("button", { className: "chip", type: "button", textContent: s.name, onclick: () => pick(i) })));
+  pick(0);
+})();
+
+/* Approach steps */
+(() => {
+  const box = $("#steps");
+  const pick = i => {
+    const s = CASE.steps[i];
+    $$(".step", box).forEach((b, j) => b.setAttribute("aria-pressed", String(i === j)));
+    $("#step-title").textContent = s.title;
+    $("#step-body").textContent = s.body;
+    $("#step-tech").replaceChildren(...s.tech.map(t => el("span", { className: "chip", textContent: t })));
+  };
+  CASE.steps.forEach((s, i) => box.append(el("button", { className: "step", type: "button", onclick: () => pick(i) },
+    [el("b", { textContent: String(i + 1).padStart(2, "0") }), el("span", { textContent: s.k }), el("small", { className: "fine", textContent: s.title })])));
+  pick(0);
+})();
+
+/* Risk register */
+(() => {
+  const cats = ["All", ...new Set(CASE.risks.map(r => r.cat))];
+  let active = "All";
+  const filter = $("#risk-filter"), list = $("#risks");
+  const render = () => {
+    $$("button", filter).forEach(b => b.setAttribute("aria-pressed", String(b.textContent.startsWith(active))));
+    list.replaceChildren(...CASE.risks.filter(r => active === "All" || r.cat === active).map((r, i) => {
+      const d = el("details", { className: "risk", open: i === 0 });
+      d.append(
+        el("summary", {}, [el("span", { className: "dot" + (r.cat === "Control" ? " ctl" : "") }), el("span", { className: "t", textContent: r.title }), el("span", { className: "chev", textContent: "›" })]),
+        el("div", { className: "body" }, [
+          el("div", {}, [el("div", { className: "label", textContent: "Response" }), el("div", { textContent: r.response })]),
+          el("div", {}, [el("div", { className: "label", textContent: "Result" }), el("span", { className: "pill", textContent: r.outcome })])
+        ]));
+      return d;
+    }));
+  };
+  cats.forEach(c => filter.append(el("button", { className: "chip", type: "button",
+    textContent: c + (c === "All" ? "" : ` (${CASE.risks.filter(r => r.cat === c).length})`),
+    onclick: () => { active = c; render(); } })));
+  render();
+})();
+
+/* Outcome bars */
+$("#wait-pct").textContent = Math.abs(CASE.waitChange) + "%";
+$("#fin-ca").textContent = money(CASE.costAvoidance);
+const bar = (label, value, max, text, alt) => el("div", { className: "bar-row" }, [
+  el("div", { className: "bar-head" }, [el("span", { textContent: label }), el("b", { textContent: text })]),
+  el("div", { className: "track", role: "img", ariaLabel: `${label}: ${text}` }, [el("div", { className: "fill" + (alt ? " alt" : ""), dataset: { w: (value / max * 100).toFixed(1) } })])
+]);
+$("#wait-bars").append(
+  bar("Median wait before (index)", 100, 100, "100", true),
+  bar("Median wait after (index)", 100 + CASE.waitChange, 100, String(100 + CASE.waitChange)));
+$("#adopt-bars").append(...CASE.adoption.map(a => bar(a.label, a.value, 100, a.value + "%")));
+function animateBars() { $$(".fill").forEach(f => f.style.width = f.dataset.w + "%"); }
+
+/* Scenario explorer */
+const DEFAULTS = { inv: CASE.investment, real: 100, ramp: 1, hor: 10 };
+const ctrls = { inv: $("#inv"), real: $("#real"), ramp: $("#ramp"), hor: $("#hor") };
+function setDefaults() { Object.entries(DEFAULTS).forEach(([k, v]) => ctrls[k].value = v); update(); }
+Object.values(ctrls).forEach(c => c.addEventListener("input", update));
+$("#reset").addEventListener("click", setDefaults);
+
+// Cumulative net (£M) at time t (years), benefit ramps linearly to full over `ramp` years.
+function netAt(t, inv, real, ramp) {
+  const a = CASE.costAvoidance * real / 100;
+  const ben = ramp === 0 ? a * t : t <= ramp ? a * t * t / (2 * ramp) : a * (ramp / 2 + (t - ramp));
+  return ben - inv;
+}
+function paybackYears(inv, real, ramp) {
+  const a = CASE.costAvoidance * real / 100; if (a <= 0) return Infinity;
+  if (ramp === 0) return inv / a;
+  return inv <= a * ramp / 2 ? Math.sqrt(2 * ramp * inv / a) : inv / a + ramp / 2;
+}
+const vals = () => ({ inv: +ctrls.inv.value, real: +ctrls.real.value, ramp: +ctrls.ramp.value, hor: +ctrls.hor.value });
+
+function update() {
+  const v = vals();
+  $("#inv-out").textContent = money(v.inv);
+  $("#real-out").textContent = v.real + "%";
+  $("#ramp-out").textContent = v.ramp === 0 ? "Immediate" : v.ramp + (v.ramp === 1 ? " year" : " years");
+  $("#hor-out").textContent = v.hor + " years";
+  const pb = paybackYears(v.inv, v.real, v.ramp), net = netAt(v.hor, v.inv, v.real, v.ramp);
+  const sp = $("#s-payback");
+  sp.textContent = pb <= v.hor ? pb.toFixed(1) + " yrs" : "> " + v.hor + " yrs";
+  sp.className = "v num " + (pb <= v.hor ? "good" : "bad");
+  const sn = $("#s-net"); sn.textContent = money(net); sn.className = "v num " + (net >= 0 ? "good" : "bad");
+  const roi = net / v.inv * 100, sr = $("#s-roi");
+  sr.textContent = (roi < 0 ? "−" : "+") + Math.abs(roi).toFixed(0) + "%"; sr.className = "v num " + (roi >= 0 ? "good" : "bad");
+  drawChart();
+}
+
+const NS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs = {}) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+function drawChart() {
+  const box = $("#chart"); if (!box || box.offsetParent === null) return;
+  const v = vals(), W = Math.max(300, box.clientWidth), H = 280, m = { t: 16, r: 18, b: 34, l: 52 };
+  const steps = v.hor * 4, pts = [], lo = [], hi = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / 4;
+    pts.push([t, netAt(t, v.inv, v.real, v.ramp)]);
+    lo.push([t, netAt(t, v.inv, 50, v.ramp)]);
+    hi.push([t, netAt(t, v.inv, 120, v.ramp)]);
+  }
+  const all = [...pts, ...lo, ...hi].map(p => p[1]);
+  let yMin = Math.min(0, ...all), yMax = Math.max(0, ...all);
+  const span = yMax - yMin || 1, stepY = [1, 2, 5, 10, 20].find(s => span / s <= 7) || 50;
+  yMin = Math.floor(yMin / stepY) * stepY; yMax = Math.ceil(yMax / stepY) * stepY;
+  const x = t => m.l + t / v.hor * (W - m.l - m.r);
+  const y = n => m.t + (yMax - n) / (yMax - yMin) * (H - m.t - m.b);
+  const css = getComputedStyle(document.documentElement), c = k => css.getPropertyValue(k).trim();
+
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Cumulative net position by year" });
+  for (let n = yMin; n <= yMax + 1e-9; n += stepY) {
+    svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: y(n), y2: y(n), stroke: c("--grid") }));
+    const tx = svgEl("text", { x: m.l - 8, y: y(n) + 4, "text-anchor": "end", fill: c("--muted"), "font-size": 11, "font-family": "IBM Plex Mono, monospace" });
+    tx.textContent = money(n, 0); svg.append(tx);
+  }
+  const xStep = v.hor > 12 ? 2 : 1;
+  for (let t = 0; t <= v.hor; t += xStep) {
+    const tx = svgEl("text", { x: x(t), y: H - 12, "text-anchor": "middle", fill: c("--muted"), "font-size": 11, "font-family": "IBM Plex Mono, monospace" });
+    tx.textContent = t === 0 ? "Yr 0" : t; svg.append(tx);
+  }
+  const path = p => p.map((q, i) => (i ? "L" : "M") + x(q[0]).toFixed(1) + "," + y(q[1]).toFixed(1)).join("");
+  svg.append(svgEl("path", { d: path(hi) + path([...lo].reverse()).replace(/^M/, "L") + "Z", fill: c("--band"), stroke: "none" }));
+  svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: y(0), y2: y(0), stroke: c("--muted"), "stroke-dasharray": "4 4" }));
+  const be = svgEl("text", { x: W - m.r, y: y(0) - 6, "text-anchor": "end", fill: c("--muted"), "font-size": 11 }); be.textContent = "Break-even"; svg.append(be);
+  svg.append(svgEl("path", { d: path(pts), fill: "none", stroke: c("--teal"), "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  const pb = paybackYears(v.inv, v.real, v.ramp);
+  if (pb <= v.hor) {
+    svg.append(svgEl("circle", { cx: x(pb), cy: y(0), r: 5, fill: c("--panel"), stroke: c("--teal"), "stroke-width": 2.5 }));
+    const lbl = svgEl("text", { x: x(pb), y: y(0) + 18, "text-anchor": x(pb) > W - 90 ? "end" : "middle", fill: c("--teal"), "font-size": 11.5, "font-weight": 600 });
+    lbl.textContent = "Payback " + pb.toFixed(1) + " yrs"; svg.append(lbl);
+  }
+  const end = pts[pts.length - 1];
+  svg.append(svgEl("circle", { cx: x(end[0]), cy: y(end[1]), r: 4, fill: c("--teal") }));
+  const hover = svgEl("circle", { r: 5, fill: c("--teal"), opacity: 0 }); svg.append(hover);
+  const guide = svgEl("line", { y1: m.t, y2: H - m.b, stroke: c("--line"), opacity: 0 }); svg.insertBefore(guide, svg.firstChild);
+
+  const tip = $("#tip");
+  svg.addEventListener("pointermove", e => {
+    const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) * W / r.width;
+    const t = Math.max(0, Math.min(v.hor, Math.round((sx - m.l) / (W - m.l - m.r) * v.hor)));
+    const n = netAt(t, v.inv, v.real, v.ramp);
+    hover.setAttribute("cx", x(t)); hover.setAttribute("cy", y(n)); hover.setAttribute("opacity", 1);
+    guide.setAttribute("x1", x(t)); guide.setAttribute("x2", x(t)); guide.setAttribute("opacity", 1);
+    tip.hidden = false;
+    tip.replaceChildren(el("div", { className: "label", textContent: "Year " + t }), el("div", { className: "num", textContent: "Net " + money(n) }),
+      el("div", { className: "num fine", textContent: "Avoided to date " + money(n + v.inv) }));
+    const px = x(t) * r.width / W;
+    tip.style.left = Math.max(70, Math.min(r.width - 70, px)) + "px";
+    tip.style.top = (y(n) * r.height / H) + "px";
+  });
+  svg.addEventListener("pointerleave", () => { tip.hidden = true; hover.setAttribute("opacity", 0); guide.setAttribute("opacity", 0); });
+  box.querySelector("svg")?.remove();
+  box.prepend(svg);
+}
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(drawChart, 120); });
+
+setDefaults();
+show(location.hash.slice(1) || "challenge");
+</script>
+</body>
+</html>
