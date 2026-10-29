@@ -4,7 +4,9 @@
 
 `index.html` is a self-contained, interactive executive dashboard (no build step, no dependencies beyond Google Fonts).
 
-**View it:** open `index.html` in a browser, or enable GitHub Pages (Settings → Pages → deploy from branch, root folder).
+**Live link:** https://ibiso-star.github.io/Project-portfolio/
+
+You can also open `index.html` directly in a browser.
 
 ### What's interactive
 - **Headline figures** link to the section that explains them.
